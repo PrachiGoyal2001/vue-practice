@@ -20,13 +20,6 @@ const accordianDetails = [
     content: 'Buid full-stack using React.js and Node.js',
   },
 ]
-const accordiansRefs = useTemplateRef('accordians')
-
-const isToggleAccordian = (index) => {
-  accordiansRefs.value.forEach((acc, accordianIndex) => {
-    if (accordianIndex !== index && acc.isOpen) acc.toggleAccordian()
-  })
-}
 </script>
 
 <template>
@@ -34,8 +27,6 @@ const isToggleAccordian = (index) => {
     :title="title"
     v-for="({ title, content }, index) in accordianDetails"
     :key="index"
-    ref="accordians"
-    @click="isToggleAccordian(index)"
   >
     <template #default>
       {{ content }}

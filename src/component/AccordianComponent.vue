@@ -1,6 +1,6 @@
 <template>
-  <div class="accordian-container">
-    <div class="accordian-title-container" @click="toggleAccordian" v-bind="$attrs">
+  <div class="accordian-container" ref="accordianRef">
+    <div class="accordian-title-container" @click="toggleAccordian(true)">
       <div class="accordian-title">
         {{ title }}
         <ChevronUp v-if="isOpen" />
@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { ref, useAttrs } from 'vue'
+import { onMounted, ref, useTemplateRef, getCurrentInstance } from 'vue'
 import ChevronDown from 'vue-material-design-icons/ChevronDown.vue'
 import ChevronUp from 'vue-material-design-icons/ChevronUp.vue'
 
@@ -26,18 +26,66 @@ defineProps({
 })
 
 const isOpen = ref(false)
+const accordianRef = useTemplateRef('accordianRef')
 
-const toggleAccordian = () => {
+let instance = null
+
+const toggleAccordian = (closeOthers) => {
   isOpen.value = !isOpen.value
+  if (closeOthers) {
+    closeOtherAccordians()
+  }
+}
+const closeAccordian = () => {
+  isOpen.value = false
+}
+/**
+ * 1.) Find all other Accordian
+ * 2.) Exclude Current Accordian
+ * 3.) Loop through all Accordian
+ * 4.) Trigger toogleAccordian function inside other Accordians
+ */
+const closeOtherAccordians = () => {
+  const allAccordian = document.getElementsByClassName('accordian-container')
+  for (const accordian of allAccordian) {
+    if (instance != accordian.instanceId) {
+      accordian.closeAccordian()
+    }
+  }
+}
+/*
+const accordian = {
+  open: false,
+  toggle() {
+    this.open = !this.open()
+    this.closeOthers()
+  },
+  closeOthers() {
+    accordian2.toggle()
+  }
 }
 
-defineOptions({
-  inheritAttrs: false,
-})
+const accordian2 = {
+  open: false,
+  toggle() {
+    this.open = !this.open
+    this.closeOthers()
+  },
+  closeOthers() {
+    accordian.toggle()
+  }
+}
+*/
 
-defineExpose({
-  isOpen,
-  toggleAccordian,
+/*
+accordian3
+accordian4
+accordian5
+*/
+
+onMounted(() => {
+  accordianRef.value.closeAccordian = closeAccordian
+  accordianRef.value.instanceId = instance = getCurrentInstance()?.uid
 })
 </script>
 
