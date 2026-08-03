@@ -23,15 +23,7 @@ const accordianDetails = [
 </script>
 
 <template>
-  <AccordianComponent
-    :title="title"
-    v-for="({ title, content }, index) in accordianDetails"
-    :key="index"
-  >
-    <template #default>
-      {{ content }}
-    </template>
-  </AccordianComponent>
+  <div>App.vue</div>
 </template>
 
 <style scoped>
