@@ -1,8 +1,7 @@
-<script setup>
-import TodoApp from './components/TodoApp.vue'
-</script>
+<script setup></script>
+
 <template>
-  <TodoApp />
+  <div>App.vue</div>
 </template>
 
 <style scoped></style>
