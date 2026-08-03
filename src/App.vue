@@ -19,10 +19,7 @@ getBytes()
 </script>
 
 <template>
-  <div>
-    <ProgressBarComponent :percentage="progessCompleted" />
-    <CircularBarComponent :percentage="progessCompleted" />
-  </div>
+  <div>App.vue</div>
 </template>
 
 <style scoped></style>
