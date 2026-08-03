@@ -1,9 +1,7 @@
-<script setup>
-import OtpInput from './components/OtpInput.vue'
-</script>
+<script setup></script>
 
 <template>
-  <OtpInput :otpLength="4" />
+  <div>App.vue</div>
 </template>
 
 <style scoped></style>
