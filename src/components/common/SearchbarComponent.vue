@@ -1,11 +1,5 @@
 <template>
   <div class="dropdown-wrapper">
-    <div class="all-tag-wrapper">
-      <div v-for="tag in allTags" :key="`${tag.id}`" class="tag">
-        {{ tag[label] }}
-        <span @click="removeTag(tag)" class="remove-tag">❌</span>
-      </div>
-    </div>
     <div v-click-outside class="input-options-wrapper">
       <input
         v-model="userInput"
@@ -21,12 +15,11 @@
         tabindex="-1"
         @keydown.down.prevent="moveToNextOption"
         @keydown.up.prevent="moveToPrevOption"
-        @keydown.enter.prevent="addToTag"
       >
         <div v-if="allFilteredOptions.length">
           <div
             v-for="(option, index) in allFilteredOptions"
-            :key="option.id"
+            :key="option._id"
             class="option"
             :class="{ 'highlighted-option': index === highlightedOptionIndex }"
             @click="addOption(index)"
@@ -45,16 +38,12 @@
 
 <script setup>
 import { ref, computed, useTemplateRef, watch } from 'vue'
+import { useProductStore } from '@/stores/product.js'
 
 const userInput = defineModel({
   default: '',
 })
 const props = defineProps({
-  options: {
-    type: Array,
-    default: [],
-    required: true,
-  },
   label: {
     type: String,
     required: true,
@@ -63,7 +52,6 @@ const props = defineProps({
 
 const showOptions = ref(false)
 const highlightedOptionIndex = ref(null)
-const allTags = ref([])
 const allOptionsRef = useTemplateRef('allOptionsRef')
 const inputRef = useTemplateRef('inputRef')
 const allFilteredOptions = ref([])
@@ -80,12 +68,7 @@ const vClickOutside = {
 }
 
 const filteredOptions = () => {
-  const allOptions = props.options.filter(
-    (option) => !allTags.value.find((tag) => tag.id === option.id),
-  )
-  allFilteredOptions.value = allOptions.filter((option) =>
-    option[props.label].toLowerCase().includes(userInput.value),
-  )
+  allFilteredOptions.value = useProductStore().productQuickSearch(userInput.value)
 }
 
 let timer = null
@@ -99,14 +82,6 @@ const debouceSearch = () => {
     showOptions.value = true
   }, 500)
 }
-
-watch(
-  allTags,
-  () => {
-    filteredOptions()
-  },
-  { immediate: true, deep: true },
-)
 
 watch(highlightedOptionIndex, (newValue) => {
   if (newValue) {
@@ -142,27 +117,12 @@ const moveToPrevOption = () => {
   }
 }
 
-const addToTag = () => {
-  if (highlightedOptionIndex.value >= 0) {
-    allTags.value.push(allFilteredOptions.value[highlightedOptionIndex.value])
-  }
-  showOptions.value = false
-}
-
-const removeTag = ({ id }) => {
-  allTags.value = allTags.value.filter((tag) => tag.id !== id)
-}
-
 const addOption = (index) => {
   highlightedOptionIndex.value = index
-  addToTag()
 }
 </script>
 
 <style scoped>
-* {
-  box-sizing: border-box;
-}
 .dropdown-wrapper {
   width: 250px;
 }
