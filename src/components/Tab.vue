@@ -10,8 +10,8 @@
       >
         {{ tab }}
       </div>
-      <slot name="tab-content" :activeTab="activeTab" />
     </div>
+    <slot name="tab-content" :activeTab="activeTab" />
   </div>
 </template>
 
@@ -33,6 +33,7 @@ const activeTab = ref(props.allTabs?.[0])
 .all-tabs {
   display: flex;
   gap: 10px;
+  margin-bottom: 20px;
 }
 .active-tab {
   border-bottom: 2px solid blue;
