@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div v-for="(field, key, index) in activeFormField" :key="`${field}${index}`">
-      <div v-if="field.type === 'text'">
-        <label :for="field.label">{{ field.label }} </label>
+    <div v-for="(field, key, index) in fields" :key="`${field}${index}`">
+      <div v-if="showField(field, 'text')" class="mb-2">
+        <label :for="field.label">{{ field.label }}</label>
         <input
           type="text"
           v-model="field.value"
@@ -10,7 +10,7 @@
           :id="field.label"
         />
       </div>
-      <div v-if="field.type === 'number'">
+      <div v-if="showField(field, 'number')" class="mb-2">
         <label :for="field.label">{{ field.label }} </label>
         <input
           type="number"
@@ -19,7 +19,7 @@
           :id="field.label"
         />
       </div>
-      <div v-if="field.type === 'radio'">
+      <div v-if="showField(field, 'radio')" class="mb-2">
         {{ field.label }}
         <div v-for="(option, index) in field.options" :key="`${option}${index}`">
           <input
@@ -32,7 +32,7 @@
           <label :for="option"> {{ option }} </label>
         </div>
       </div>
-      <div v-if="field.type === 'checkbox'">
+      <div v-if="showField(field, 'checkbox')" class="mb-2">
         {{ field.label }}
         <div v-for="(option, index) in field.options" :key="`${option.value}${index}`">
           <input
@@ -45,7 +45,7 @@
           <label :for="option.value"> {{ option.label }} </label>
         </div>
       </div>
-      <div v-if="field.type === 'select'">
+      <div v-if="showField(field, 'select')" class="mb-2">
         {{ field.label }}
         <select v-model="field.value">
           <option v-for="option in field.options" :key="option.value" :value="option.value">
@@ -53,16 +53,16 @@
           </option>
         </select>
       </div>
-      <div class="error-message" v-if="isValidate">
-        {{ field.validator() }}
+      <div
+        class="error-message"
+        v-if="
+          isValidate && (!field.show || (field.show && field.show(formDetail?.[field.field].value)))
+        "
+      >
+        {{ validator(field) }}
       </div>
     </div>
-    <button
-      v-if="activeTab === Object.keys(formDetail)[Object.keys(formDetail).length - 1]"
-      @click="submitForm"
-    >
-      Submit
-    </button>
+    <button v-if="showSubmitButton" @click="submitForm">Submit</button>
   </div>
 </template>
 
@@ -70,55 +70,52 @@
 import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
-  activeTab: {
-    type: String,
-    required: true,
-  },
   formDetail: {
     type: Object,
     required: true,
     default: () => {},
   },
+  showSubmitButton: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  isValidate: {
+    type: Boolean,
+    required: true,
+  },
 })
 
-const formFields = ref(props.formDetail)
-const isValidate = ref(false)
+const emit = defineEmits(['updatedFormDetail', 'submitForm'])
+
+const fields = ref(props.formDetail)
 const allRequiredFieldsFilled = ref(true)
-const result = ref({})
 
-const activeFormField = computed(() => formFields.value[props.activeTab])
+const showField = (field, type) =>
+  field.type === type && (!field.show || field.show(props.formDetail[field.field]?.value))
 
-const checkRequiredFieldsAdded = () => {
-  Object.keys(formFields.value).forEach((tabFields) => {
-    const tabField = formFields.value[tabFields]
-    allRequiredFieldsFilled.value &&
-      Object.keys(tabField).forEach((field) => {
-        if (tabField[field].isRequired) {
-          if (
-            (tabField[field].type === 'checkbox' && !tabField[field].value.length) ||
-            !tabField[field].value
-          ) {
-            allRequiredFieldsFilled.value = false
-            return
-          }
-        }
-      })
-  })
+watch(
+  fields,
+  (newValue) => {
+    emit('updatedFormDetail', newValue)
+  },
+  { deep: true },
+)
+
+watch(
+  () => props.formDetail,
+  (newValue) => {
+    fields.value = newValue
+  },
+)
+
+const validator = ({ value, rules = [] }) => {
+  const errors = rules.filter((fn) => typeof fn(value) === 'string')
+  return errors[0]?.(value)
 }
 
 const submitForm = () => {
-  isValidate.value = true
-  allRequiredFieldsFilled.value = true
-  checkRequiredFieldsAdded()
-  if (allRequiredFieldsFilled.value) {
-    Object.keys(formFields.value).forEach((tabFields) => {
-      const tabField = formFields.value[tabFields]
-      Object.keys(tabField).forEach((field) => {
-        result.value[field] = tabField[field].value
-      })
-    })
-    console.log(result.value)
-  }
+  emit('submitForm')
 }
 </script>
 
@@ -126,5 +123,8 @@ const submitForm = () => {
 .error-message {
   color: red;
   margin: 10px 0px;
+}
+.mb-2 {
+  margin-bottom: 10px;
 }
 </style>
